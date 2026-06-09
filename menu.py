@@ -59,8 +59,12 @@ def menu():
                         print("\nInvalid salary input.")
                         continue
 
-                    if not employee_name or not email or not position or not salary or not entry_date:
+                    if not employee_name or not email or not position or not entry_date:
                         print("\nAll the fields have to be filled.")
+                        continue
+
+                    if salary <= 0:
+                        print("\nSalary must be greater than 0.")
                         continue
 
                     if not "@" in email:
@@ -82,7 +86,35 @@ def menu():
                         choice = input("Enter with your choice using a number: ").strip()
 
                         if choice == "1":
-                            pass
+                            print("\n---UPDATE EMPLOYEE NAME---")
+
+                            try:
+                                employee_id = int(input("Enter the employee ID you want to change the name: "))
+                            except ValueError:
+                                print("\nInvalid input.")
+                                continue
+
+                            if not database.get_employee(connection, employee_id):
+                                print("\nID not found. Try a valid ID number.")
+                                continue
+
+                            employee_name = input("Update the name of the employee: ")
+
+                            if not employee_name:
+                                print("\nYou have to fill the field.")
+                                continue
+
+                            confirm = input("Are you sure you want to update the employee name? (Y/N): ").strip().lower()
+                            
+                            if confirm == "n":
+                                print("\nCancelled.")
+                                continue
+                            elif confirm == "y":
+                                database.update_employee_name(connection, employee_id, employee_name)
+                                print("\nEmployee name changed succesfully!")
+                            else:
+                                print("\nInvalid input. Use Y or N.")
+                                continue
                         elif choice == "2":
                             pass
                         elif choice == "3":
@@ -90,7 +122,7 @@ def menu():
                         elif choice == "4":
                             pass
                         elif choice == "5":
-                            print("Going hack to the main page...")
+                            print("Going back to the main page...")
                             break
                         else:
                             print("\nInvalid number.")
@@ -112,7 +144,7 @@ def menu():
             connection.close()
             break
         else:
-            print("Invalid number.")
+            print("\nInvalid number.")
             continue
 
 menu()

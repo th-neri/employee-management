@@ -50,6 +50,10 @@ def show_employees(connection):
     with connection:
         return connection.execute("SELECT * FROM employees").fetchall()
     
+def get_employee(connection, employee_id):
+    with connection:
+        return connection.execute("SELECT 1 FROM employees WHERE employee_id=?", (employee_id,)).fetchone()
+    
 def update_employee_name(connection, employee_id, employee_name):
     with connection:
         connection.execute("UPDATE employeers SET employee_name=? WHERE employee_id=?", (employee_name, employee_id))
