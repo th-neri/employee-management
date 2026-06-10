@@ -19,9 +19,8 @@ def menu():
                 print("1. View employees")
                 print("2. Register employee")
                 print("3. Search employee")
-                print("4. Update employee informations")
-                print("5. Delete employee")
-                print("6. Go back")
+                print("4. Change employee informations")
+                print("5. Go back")
 
                 choice = input("Enter with your choice using a number: ").strip()
 
@@ -38,13 +37,14 @@ def menu():
                         employee_id = employee[0]
                         name = employee[1]
                         email = employee[2]
-                        position = employee[3]
-                        salary = employee[4]
-                        entry_date = employee[5]
+                        department_name = employee[3]
+                        position = employee[4]
+                        salary = employee[5]
+                        entry_date = employee[6]
 
                         print(f'\nID NUMBER: {employee_id}')
-                        print("-" * employee_id)
-                        print(f'NAME: {name} | EMAIL: {email} | POSITION: {position} | SALARY: {salary} | ENTRY DATE: {entry_date}')
+                        print("-" * 13)
+                        print(f'DEPARTMENT: {department_name} | NAME: {name} | EMAIL: {email} | POSITION: {position} | SALARY: ${salary:,.2f} | ENTRY DATE: {entry_date}')
 
                 elif choice == "2":
                     print("\n---REGISTER EMPLOYEE---")
@@ -52,28 +52,36 @@ def menu():
                     try:
                         employee_name = input("Write the employee name: ")
                         email = input("Write the employee email: ")
+                        department_id = int(input("Write the department ID: "))
                         position = input("Write the employee position: ")
                         salary = float(input("Write the employee salary: ").strip())
                         entry_date = input("Entry date(YYYY-MM-DD): ").strip()
                     except ValueError:
-                        print("\nInvalid salary input.")
+                        print("\nInvalid department ID or salary input. Use numbers.")
                         continue
 
-                    if not employee_name or not email or not position or not entry_date:
+                    if not employee_name or not email or not position or not salary or not entry_date:
                         print("\nAll the fields have to be filled.")
+                        continue
+
+                    if not database.get_department(connection, department_id):
+                        print("\nID not found. Try a valid ID number.")
+                        continue
+
+                    if not "@" in email:
+                        print("\nInvalid email. You need to use ""@"".")
                         continue
 
                     if salary <= 0:
                         print("\nSalary must be greater than 0.")
                         continue
 
-                    if not "@" in email:
-                        print("\nInvalid email.")
-                        continue
+                    database.add_employee(connection, employee_name, email, department_id, position, salary, entry_date)
+                    print("\nEmployee data added successfully!")
 
-                    database.add_employee(connection, employee_name, email, position, salary, entry_date)
                 elif choice == "3":
                     pass
+
                 elif choice == "4":
                     while True:
                         print("\n---UPDATE EMPLOYEE INFORMATIONS OPTIONS---")
@@ -81,7 +89,8 @@ def menu():
                         print("2. Update employee email")
                         print("3. Update employee position")
                         print("4. Update employee salary")
-                        print("5. Go back")
+                        print("5. Remove employee informations")
+                        print("6. Go back")
 
                         choice = input("Enter with your choice using a number: ").strip()
 
@@ -89,7 +98,7 @@ def menu():
                             print("\n---UPDATE EMPLOYEE NAME---")
 
                             try:
-                                employee_id = int(input("Enter the employee ID you want to change the name: "))
+                                employee_id = int(input("Enter the employee ID you want to update the name: "))
                             except ValueError:
                                 print("\nInvalid input.")
                                 continue
@@ -111,38 +120,290 @@ def menu():
                                 continue
                             elif confirm == "y":
                                 database.update_employee_name(connection, employee_id, employee_name)
-                                print("\nEmployee name changed succesfully!")
+                                print("\nEmployee name updated succesfully!")
                             else:
                                 print("\nInvalid input. Use Y or N.")
                                 continue
+
                         elif choice == "2":
-                            pass
+                            print("\n---UPDATE EMPLOYEE EMAIL---")
+
+                            try:
+                                employee_id = int(input("Enter the employee ID you want to update the email: "))
+                            except ValueError:
+                                print("\nInvalid input.")
+                                continue
+
+                            if not database.get_employee(connection, employee_id):
+                                print("\nID not found. Try a valid ID number.")
+                                continue
+
+                            email = input("Update the email of the employee: ")
+
+                            if not email:
+                                print("\nYou have to fill the field.")
+                                continue
+
+                            if not "@" in email:
+                                print("\nInvalid email. You need to use ""@"".")
+                                continue
+
+                            confirm = input("\nAre you sure you want to update the employee email? (Y/N): ").strip().lower()
+
+                            if confirm == "n":
+                                print("\nCancelled.")
+                                continue
+                            elif confirm == "y":
+                                database.update_employee_email(connection, employee_id, email)
+                                print("\nEmployee email changed successfully!")
+                            else:
+                                print("\nInvalid input. Use Y or N.")
+                                continue
+
                         elif choice == "3":
-                            pass
+                            print("\n---UPDATE EMPLOYEE POSITION---")
+
+                            try:
+                                employee_id = int(input("Enter the employee ID you want to update the position: "))
+                            except ValueError:
+                                print("\nInvalid input.")
+                                continue
+
+                            if not database.get_employee(connection, employee_id):
+                                print("\nID not found. Try a valid ID number.")
+                                continue
+
+                            position = input("Update the position of the employee: ")
+
+                            if not position:
+                                print("\nYou have to fill the field.")
+                                continue
+
+                            confirm = input("\nAre you sure you want to update the employee position? (Y/N): ").strip().lower()
+
+                            if confirm == "n":
+                                print("\nCancelled.")
+                                continue
+                            elif confirm == "y":
+                                database.update_employee_position(connection, employee_id, position)
+                                print("\nEmployee position changed successfully!")
+                            else:
+                                print("\nInvalid input. Use Y or N.")
+                                continue
+
                         elif choice == "4":
-                            pass
+                            print("\n---UPDATE EMPLOYEE SALARY---")
+
+                            try:
+                                employee_id = int(input("Enter the employee ID you want to update the salary: "))
+                            except ValueError:
+                                print("\nInvalid input.")
+                                continue
+
+                            if not database.get_employee(connection, employee_id):
+                                print("\nID not found. Try a valid ID number.")
+                                continue
+
+                            try:
+                                salary = float(input("Update the salary of the employee: "))
+                            except ValueError:
+                                print("\nInvalid salary input. Use numbers.")
+                                continue
+
+                            if not salary:
+                                print("\nYou have to fill the field.")
+                                continue
+
+                            if salary <= 0:
+                                print("\nSalary must be greater than 0.")
+                                continue
+
+                            confirm = input("\nAre you sure you want to update the employee salary? (Y/N): ").strip().lower()
+
+                            if confirm == "n":
+                                print("\nCancelled.")
+                                continue
+                            elif confirm == "y":
+                                database.update_employee_salary(connection, employee_id, salary)
+                                print("\nEmployee salary changed successfully!")
+                            else:
+                                print("\nInvalid input. Use Y or N.")
+                                continue
+
                         elif choice == "5":
-                            print("Going back to the main page...")
+                            ("\n---REMOVE EMPLOYEE INFORMATIONS---")
+
+                            try:
+                                employee_id = int(input("Enter the employee ID you want to remove: "))
+                            except ValueError:
+                                print("\nInvalid input.")
+                                continue
+
+                            if not database.get_employee(connection, employee_id):
+                                print("\nID not found. Try a valid ID number.")
+                                continue
+
+                            confirm = input("\nAre you sure you want to remove the employee informations? (Y/N): ").strip().lower()
+
+                            if confirm == "n":
+                                print("\nCancelled.")
+                                continue
+                            elif confirm == "y":
+                                database.delete_employee(connection, employee_id)
+                                print("\nEmployee removed successfully!")
+                            else:
+                                print("\nInvalid input. Use Y or N.")
+                                continue 
+
+                        elif choice == "6":
+                            print("\nGoing back to the main page...")
                             break
                         else:
                             print("\nInvalid number.")
                             continue
+                
                 elif choice == "5":
-                    pass
-                elif choice == "6":
                     print("\nGoing back to the main page...\n")
                     break
                 else:
                     print("\nInvalid number.")
                     continue
+
         elif choice == "2":
-            pass
+            while True:
+                print("\n---DEPARTMENT OPTIONS---")
+                print("1. View departments")
+                print("2. Add departments")
+                print("3. Update department name")
+                print("4. Remove department")
+                print("5. Go back")
+
+                choice = input("Enter with your choice using a number: ").strip()
+
+                if choice == "1":
+                    ("\n---DEPARTMENTS LIST---")
+
+                    departments = database.show_departments(connection)
+
+                    if not departments:
+                        print("\nNo departments available.")
+                        continue
+
+                    for department in departments:
+                        department_id = department[0]
+                        department_name = department[1]
+
+                    print(f'\nDEPARTMENT ID NUMBER: {department_id}')
+                    print("-" * 24)
+                    print(f'DEPARTMENT NAME: {department_name}')
+
+                elif choice == "2":
+                    print("\n---ADD NEW DEPARTMENT---")
+
+                    department_name = input("Write the new department name: ")
+
+                    if not department_name:
+                        print("\nThe field has to be filled.")
+                        continue
+
+                    database.add_departmwent(connection, department_name)
+                    print("Department added successfully!")
+
+                elif choice == "3":
+                    ("\n---UPDATE DEPARTMENT NAME---")
+
+                    departments = database.show_departments(connection)
+
+                    if not departments:
+                        print("\nNo departments available.")
+                        continue
+
+                    for department in departments:
+                        department_id = department[0]
+                        department_name = department[1]
+
+                    print(f'\nDEPARTMENT ID NUMBER: {department_id} | DEPARTMENT NAME: {department_name}')
+                    
+                    try:
+                        department_id = int(input("\nEnter the department ID you want to update the name: "))
+                    except ValueError:
+                        print("\nInvalid input.")
+                        continue
+
+                    if not database.get_department(connection, department_id):
+                        print("\nID not found. Try a valid ID number.")
+                        continue
+
+                    department_name = input("Update the name of the department: ")
+
+                    if not department_name:
+                        print("\nYou have to fill the field.")
+                        continue
+
+                    confirm = input("\nAre you sure you want to update the department name? (Y/N): ").strip().lower()
+
+                    if confirm == "n":
+                        print("\nCancelled.")
+                        continue
+                    elif confirm == "y":
+                        database.update_department_name(connection, department_id, department_name)
+                        print("\nDepartment name updated successfully!")
+                    else:
+                        print("\nInvalid input. Use Y or N.")
+                        continue
+
+                elif choice == "4":
+                    ("\n---REMOVE DEPARTMENT---")
+
+                    departments = database.show_departments(connection)
+
+                    if not departments:
+                        print("\nNo departments available.")
+                        continue
+
+                    for department in departments:
+                        department_id = department[0]
+                        department_name = department[1]
+
+                    print(f'\nDEPARTMENT ID NUMBER: {department_id} | DEPARTMENT NAME: {department_name}')
+
+                    try:
+                        department_id = int(input("\nEnter the department ID you want to remove: "))
+                    except ValueError:
+                        print("\nInvalid input.")
+                        continue
+
+                    if not database.get_department(connection, department_id):
+                        print("\nID not found. Try a valid ID number.")
+                        continue
+
+                    confirm = input("\nAre you sure you want to remove the department? (Y/N): ").strip().lower()
+
+                    if confirm == "n":
+                        print("\nCancelled.")
+                        continue
+                    elif confirm == "y":
+                        database.delete_department(connection, department_id)
+                        print("\nDepartment removed successfully!")
+                    else:
+                        print("\nInvalid input. Use Y or N.")
+                        continue
+                    
+                elif choice == "5":
+                    print("\nGoing back to the main page...\n")
+                    break
+                else:
+                    print("\nInvalid number.")
+                    continue
+
         elif choice == "3":
             pass
+
         elif choice == "4":
             print("\nLeaving...\n")
             connection.close()
             break
+
         else:
             print("\nInvalid number.")
             continue
