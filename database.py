@@ -36,7 +36,7 @@ def create_tables(connection):
                        )
                        """)
 
-
+#-----DEPARTMENTS FUNCTIONS-----
 def add_departmwent(connection, department_name):
     with connection:
         connection.execute("INSERT INTO departments(department_name) VALUES(?); ", (department_name,))
@@ -58,6 +58,7 @@ def delete_department(connection, department_id):
         connection.execute("DELETE FROM departments WHERE department_id=?", (department_id,))
 
 
+#-----EMPLOYEES FUNCTIONS-----
 def add_employee(connection, employee_name, email, department_id, position, salary, entry_date):
     with connection:
         connection.execute("""INSERT INTO employees(employee_name, email, department_id, position, salary, entry_date)
@@ -81,6 +82,48 @@ def show_employees(connection):
 def get_employee(connection, employee_id):
     with connection:
         return connection.execute("SELECT 1 FROM employees WHERE employee_id=?", (employee_id,)).fetchone()
+    
+def search_employee_by_id(connection, employee_id):
+    with connection:
+        return connection.execute("""SELECT 
+                                        e.employee_name, 
+                                        e.email, 
+                                        d.department_name, 
+                                        e.position, 
+                                        e.salary, 
+                                        e.entry_date 
+                                    FROM employees e
+                                    JOIN departments d ON e.department_id = d.department_id
+                                    WHERE e.employee_id=?
+                                 """, (employee_id,)).fetchone()
+    
+def search_employee_by_name(connection, employee_name):
+    with connection:
+        return connection.execute("""SELECT
+                                        e.employee_name,
+                                        e.email,
+                                        d.department_name,
+                                        e.position,
+                                        e.salary,
+                                        e.entry_date
+                                    FROM employees e
+                                    JOIN departments d ON e.department_id = d.department_id
+                                    WHERE e.employee_name LIKE ?
+                                 """, (f"%{employee_name}%",)).fetchall()
+    
+def search_employee_by_email(connection, email):
+    with connection:
+        return connection.execute("""SELECT
+                                        e.employee_name,
+                                        e.email,
+                                        d.department_name,
+                                        e.position,
+                                        e.salary,
+                                        e.entry_date
+                                    FROM employees e
+                                    JOIN departments d ON e.department_id = d.department_id
+                                    WHERE e.email=?
+                                  """, (email,)).fetchone()
     
 def update_employee_name(connection, employee_id, employee_name):
     with connection:
