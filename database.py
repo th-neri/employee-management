@@ -27,23 +27,15 @@ def create_tables(connection):
                        )
                        """)
     
-        connection.execute("""
-                        CREATE TABLE IF NOT EXISTS employee_department (
-                            employee_id INTEGER,
-                            department_id INTEGER,
-                            FOREIGN KEY(employee_id) REFERENCES employees(employee_id),
-                            FOREIGN KEY(department_id) REFERENCES departments(department_id)
-                       )
-                       """)
 
 #-----DEPARTMENTS FUNCTIONS-----
-def add_departmwent(connection, department_name):
+def add_department(connection, department_name):
     with connection:
         connection.execute("INSERT INTO departments(department_name) VALUES(?); ", (department_name,))
 
 def show_departments(connection):
     with connection:
-        return connection.execute("SELECT * FROM departments").fetchall()
+        return connection.execute("SELECT * FROM departments ORDER BY department_name").fetchall()
     
 def get_department(connection, department_id):
     with connection:
@@ -77,6 +69,7 @@ def show_employees(connection):
                                         e.entry_date
                                     FROM employees e
                                     JOIN departments d ON e.department_id = d.department_id
+                                    ORDER BY e.employee_name;
                                 """).fetchall()
     
 def get_employee(connection, employee_id):
@@ -107,8 +100,10 @@ def search_employee_by_name(connection, employee_name):
                                         e.salary,
                                         e.entry_date
                                     FROM employees e
-                                    JOIN departments d ON e.department_id = d.department_id
+                                    JOIN departments d 
+                                    ON e.department_id = d.department_id
                                     WHERE e.employee_name LIKE ?
+                                    ORDER BY e.employee_name;
                                  """, (f"%{employee_name}%",)).fetchall()
     
 def search_employee_by_email(connection, email):
@@ -121,7 +116,8 @@ def search_employee_by_email(connection, email):
                                         e.salary,
                                         e.entry_date
                                     FROM employees e
-                                    JOIN departments d ON e.department_id = d.department_id
+                                    JOIN departments d 
+                                    ON e.department_id = d.department_id
                                     WHERE e.email=?
                                   """, (email,)).fetchone()
     
@@ -143,5 +139,56 @@ def update_employee_salary(connection, employee_id, salary):
 
 def delete_employee(connection, employee_id):
     with connection:
-        connection.execute("DELETE FROM employees WHERE employee_id=?", (employee_id,))   
+        connection.execute("DELETE FROM employees WHERE employee_id=?", (employee_id,))  
+
+
+def total_employees(connection):
+    with connection:
+        return connection.execute("SELECT COUNT(*) FROM employees").fetchone()[0]
+
+def total_departments(connection):
+    with connection:
+        return connection.execute("SELECT COUNT(*) FROM departments").fetchone()[0] 
+    
+def highest_salaries(connection):
+    with connection:
+        return connection.execute("""SELECT 
+                                            employee_name, salary FROM employees
+                                            ORDER BY salary DESC
+                                            LIMIT 3
+                                  """).fetchone()
+def lowest_salaries(connection):
+    with connection:
+        return connection.execute("""SELECT
+                                            employee_name, salary FROM employees
+                                            ORDER BY salary ASC
+                                            LIMIT 3""")
+    
+def average_salary(connection):
+    with connection:
+        return connection.execute("SELECT AVG(salary) FROM employees").fetchone()[0]
+    
+def employees_per_department(connection):
+    with connection:
+        return connection.execute("""SELECT
+                                            d.department_name
+                                            COUNT(e.employee_id)
+                                        FROM departments d
+                                        LEFT JOIN employees e
+                                        ON d.department_id = e.department_id
+                                        GROUP BY d.department_name
+                                        ORDER BY d.department_name
+                                  """).fetchall()
+    
+def payroll_by_department(connection):
+    with connection:
+        return connection.execute("""SELECT
+                                            d.department_name
+                                            COALESCE(SUM(e.salary), 0)
+                                        FROM departments d
+                                        LEFT JOIN employees e 
+                                        ON department_id = e.department_id
+                                        GROUP BY d.department_name
+                                        ORDER BY d.department_name
+                                  """).fetchall()
 
