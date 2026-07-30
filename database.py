@@ -142,6 +142,7 @@ def delete_employee(connection, employee_id):
         connection.execute("DELETE FROM employees WHERE employee_id=?", (employee_id,))  
 
 
+#-----REPORTS FUNCTIONS-----
 def total_employees(connection):
     with connection:
         return connection.execute("SELECT COUNT(*) FROM employees").fetchone()[0]
@@ -156,13 +157,14 @@ def highest_salaries(connection):
                                             employee_name, salary FROM employees
                                             ORDER BY salary DESC
                                             LIMIT 3
-                                  """).fetchone()
+                                  """).fetchall()
 def lowest_salaries(connection):
     with connection:
         return connection.execute("""SELECT
                                             employee_name, salary FROM employees
                                             ORDER BY salary ASC
-                                            LIMIT 3""")
+                                            LIMIT 3
+                                  """).fetchall()
     
 def average_salary(connection):
     with connection:
@@ -171,7 +173,7 @@ def average_salary(connection):
 def employees_per_department(connection):
     with connection:
         return connection.execute("""SELECT
-                                            d.department_name
+                                            d.department_name,
                                             COUNT(e.employee_id)
                                         FROM departments d
                                         LEFT JOIN employees e
@@ -183,11 +185,11 @@ def employees_per_department(connection):
 def payroll_by_department(connection):
     with connection:
         return connection.execute("""SELECT
-                                            d.department_name
+                                            d.department_name,
                                             COALESCE(SUM(e.salary), 0)
                                         FROM departments d
                                         LEFT JOIN employees e 
-                                        ON department_id = e.department_id
+                                        ON d.department_id = e.department_id
                                         GROUP BY d.department_name
                                         ORDER BY d.department_name
                                   """).fetchall()

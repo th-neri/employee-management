@@ -1,5 +1,7 @@
 import database
 from datetime import datetime
+import re
+import sqlite3
 
 def menu():
     connection = database.connect()
@@ -75,17 +77,22 @@ def menu():
                         print("\nID not found. Try a valid ID number.")
                         continue
 
-                    if not "@" in email or "." not in email:
-                        print("\nInvalid email address.")
+                    pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+                    if not re.fullmatch(pattern, email):
+                        print("\Invalid email.")
                         continue
 
                     if salary <= 0:
                         print("\nSalary must be greater than 0.")
                         continue
 
-                    database.add_employee(connection, employee_name, email, department_id, position, salary, entry_date)
-                    print("\nEmployee data added successfully!")
+                    try:
+                        database.add_employee(connection, employee_name, email, department_id, position, salary, entry_date)
+                        print("\nEmployee data added successfully!")
+                    except sqlite3.IntegrityError:
+                            print("\nThis email already exists.")
 
+                        
                 elif choice == "3":
                     while True:
                         print("\n---SEARCH OPTIONS---")
@@ -467,8 +474,79 @@ def menu():
                     continue
 
         elif choice == "3":
-            pass
+            while True:
+                print("\n---REPORTS---")
+                print("1. Total employees")
+                print("2. Total departments")
+                print("3. Highest salaries")
+                print("4. Lowest salaries")
+                print("5. Average salary")
+                print("6. Employees per department")
+                print("7. Payroll by department")
+                print("8. Go back")
+            
+                choice = input("Enter with your choice using a number: ").strip()
 
+                if choice == "1":
+                    total = database.total_employees(connection)
+                    print(f'\nTotal employees: {total}')
+                elif choice == "2":
+                    total = database.total_departments(connection)
+                    print(f'\nTotal departments: {total}')
+                elif choice == "3":
+                    employees = database.highest_salaries(connection)
+
+                    if not employees:
+                        print("\nNo employees registered.")
+                        continue
+
+                    print("\nTOP HIGHEST SALARIES")
+                    print("-" * 30)
+
+                    for name, salary in employees:
+                        print(f'{name<10} ${salary:,.2f}')
+                elif choice == "4":
+                    employees = database.lowest_salaries(connection)
+
+                    if not employees:
+                        print("\nNo employees registered.")
+                        continue
+
+                    print("\nTOP LOWEST SALARIES")
+                    print("-" * 30)
+
+                    for name, salary in employees:
+                        print(f'{name<10} ${salary:,.2f}')
+                elif choice == "5":
+                    average = database.average_salary(connection)
+
+                    if average is None:
+                        print("\nNo employees registered.")
+
+                    print(f'\nAverage salary: ${average:,.2f}')
+                elif choice == "6":
+                    departments = database.employees_per_department(connection)
+
+                    print("\nEMPLOYEES PER DEPARTMENT")
+                    print("-" * 30)
+
+                    for department, total in departments:
+                        print(f'{department<10} {total}')
+                elif choice == "7":
+                    payroll = database.payroll_by_department(connection)
+
+                    print ("\nPAYROLL BY DEPARTMENT")
+                    print("-" * 30)
+
+                    for department, total in payroll:
+                        print(f'{department<10} ${total:,.2f}')
+                elif choice == "8":
+                    print("\nGoing back to the main page...\n")
+                    break
+                else:
+                    print("\Invalid number.")
+                    continue
+                
         elif choice == "4":
             print("\nLeaving...\n")
             connection.close()
